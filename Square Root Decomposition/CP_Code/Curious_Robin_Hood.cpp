@@ -1,3 +1,4 @@
+// https://lightoj.com/problem/curious-robin-hood
 #include <bits/stdc++.h>
 #define nl '\n'
 #define ll long long
@@ -75,4 +76,3 @@ int main()
 
     return 0;
 }
-// https://lightoj.com/problem/curious-robin-hood

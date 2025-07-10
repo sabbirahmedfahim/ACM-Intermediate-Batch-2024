@@ -1,3 +1,4 @@
+// https://cses.fi/problemset/task/1735
 // unsolved, instructor said i have to use segment tree
 #include <bits/stdc++.h>
 #define nl '\n'
@@ -82,4 +83,3 @@ int main()
 
     return 0;
 }
-// https://cses.fi/problemset/task/1735

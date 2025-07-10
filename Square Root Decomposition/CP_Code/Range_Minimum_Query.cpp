@@ -1,3 +1,4 @@
+// https://www.spoj.com/problems/RMQSQ/
 #include <bits/stdc++.h>
 #define nl '\n'
 #define ll long long
@@ -45,4 +46,3 @@ int main()
 
     return 0;
 }
-// https://www.spoj.com/problems/RMQSQ/
