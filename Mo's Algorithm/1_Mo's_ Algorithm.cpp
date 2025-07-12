@@ -34,7 +34,7 @@ int main()
     blockSize = sqrtl(n) + 1;
     int queries; cin >> queries;
 
-    for (int i = 0; i < n; i++) // storing queries instead of directly doin operations, they call it OFFLINE QUERIES
+    for (int i = 0; i < queries; i++) // storing queries instead of directly doin operations, they call it OFFLINE QUERIES
     {
         int l, r; cin >> l >> r;
         q[i].l = l;
