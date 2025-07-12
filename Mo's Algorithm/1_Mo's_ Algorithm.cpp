@@ -14,10 +14,14 @@ class Q
 };
 Q q[N];
 
-bool cmp(Q q1, Q q2)
-{
-    if(q1.l / blockSize == q2.l / blockSize) return q1.r > q2.r;
-    return q1.r < q2.r;
+// bool cmp(Q q1, Q q2)
+// {
+//     if(q1.l / blockSize == q2.l / blockSize) return q1.r > q2.r;
+//     return q1.r < q2.r;
+// }
+bool cmp(Q &p, Q &q) { // faster 
+    if (p.l / blockSize != q.l / blockSize) return (p.l == q.l ? p.r <= q.r : p.l < q.l); // return p < q;
+    return (p.l / blockSize & 1) ? (p.r < q.r) : (p.r > q.r);
 }
 int main()
 {
