@@ -1,5 +1,25 @@
 {
+    "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
-        "ios": "cpp"
+        "vector": "cpp",
+        "map": "cpp",
+        "iostream": "cpp",
+        "barrier": "cpp",
+        "string": "cpp",
+        "bitset": "cpp",
+        "memory_resource": "cpp",
+        "__hash_table": "cpp",
+        "__tree": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "flat_map": "cpp",
+        "flat_set": "cpp"
+    },
+    "code-runner.executorMap": {
+        "cpp": "cd $dir && /opt/homebrew/bin/g++-15 -std=c++17 $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt"
     }
 }
