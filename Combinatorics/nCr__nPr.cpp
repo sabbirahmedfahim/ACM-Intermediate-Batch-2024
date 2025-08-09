@@ -19,34 +19,29 @@ ll Pow(ll a, ll b) // O(log b)
     }
     return ans;
 }
-void preCalc()
+void build_fact()
 {
     fact[0] = fact[1] = 1;
-    for (ll i = 2; i <= N; i++)
-    {
-        fact[i] = 1ll * (fact[i - 1] * i) % MOD;
-    }
+    for (ll i = 2; i <= N; i++) fact[i] = 1ll * (fact[i - 1] * i) % MOD;
     
     factInv[N] = Pow(fact[N], MOD-2);
-    for (ll i = N-1; i >= 0; i--)
-    {
-        factInv[i] = (factInv[i + 1] * (i + 1)) % MOD;
-    }
+    for (ll i = N-1; i >= 0; i--) factInv[i] = (factInv[i + 1] * (i + 1)) % MOD;
 }
 ll nCr(ll n, ll r)
 {
-    if(r < 0 || n < 0 || r > n) return 0;
+    if(n < r or n < 0 or r < 0) return 0;
     return ((fact[n] * factInv[r]) % MOD) * factInv[n - r] % MOD;
 }
-ll nPr(ll n, ll r)
+ll nPr(ll n, ll r) // nPr = nCr * r!
 {
+    if(n < r or n < 0 or r < 0) return 0;
     return (fact[n] * factInv[n - r]) % MOD;
 }
 int main()
 {
     ios_base::sync_with_stdio(false); cin.tie(NULL);
 
-    preCalc(); // do not forget
+    build_fact(); // do not forget
 
     return 0;
 }
