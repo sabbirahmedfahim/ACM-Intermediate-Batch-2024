@@ -1,0 +1,10 @@
+suppose, you have to find the largest length of palindrome of an array, we can do this using binary search.
+
+palindromes are two types, odd & even, so we’ll run two binary searches, one for odd and one for even.
+
+the twist is, if we find a palindrome of size 6, for sizes 4 and 2, surely they are palindromes. similar for odd.
+
+for odd, lo is 1, hi will be odd, so be careful.
+for odd, if mid is even, –mid.
+
+be careful, jamela ache maybe :3
