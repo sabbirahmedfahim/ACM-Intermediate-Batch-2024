@@ -1,109 +1,141 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
-#define endl '\n'
+#define nl '\n'
+#define ll long long
+#define all(c) c.begin(),c.end()
+#define print(c) for(auto e : c) cout << e << " "; cout << nl
 using namespace std;
-using namespace __gnu_pbds;
-using ll = long long;
 
-// collusion rate = 1 / MOD; if i use double hashing collusion rate will be 1 / (MOD1 * MOD2);
-// const __int128 MOD = 202206214218227; // More efficient module for the __int128 datatype
-// const ll mod1 = 1e9 + 7, mod2 = 1e9 + 9; // You can use those mods.
-// const int mod1 = 938704931, mod2 = 668785679, Base1 = 503, Base2 = 587; // You can use those mods.
-
-const int N = 1e6 + 7;
-const int Base1 = 137, Base2 = 277;
-const int mod1 = 127657753, mod2 = 987654319;
-
-pair<ll, ll> po[N];
-
-struct Hashing {
-    void generatePower() { // Storing the power of the Base.
-        po[0].first = 1, po[0].second = 1;
-        for (int i = 1; i < N; i++) {
-            po[i].first = (po[i - 1].first * Base1) % mod1;
-            po[i].second = (po[i - 1].second * Base2) % mod2;
-        }
-    }
-    pair<ll, ll> generateHash(string &s) { // return hash value of a string
-        pair<ll, ll> H = {0, 0};
-        for (auto &c : s) {
-            H.first = ((H.first * Base1) + c) % mod1;
-            H.second = ((H.second * Base2) + c) % mod2;
-        }
-        return H;
-    }
-
-    vector<pair<ll, ll>> prefix, suffix;
-    int n;
-    void generatePrefixHash(string &s) {
-        prefix[0].first = s[0], prefix[0].second = s[0];
-        for (int i = 1; i < s.size(); i++) {
-            prefix[i].first = ((prefix[i - 1].first * Base1) + s[i]) % mod1;
-            prefix[i].second = ((prefix[i - 1].second * Base2) + s[i]) % mod2;
-        }
-    }
-    void generateSuffixHash(string &s) {
-        suffix[n - 1].first = s[n - 1], suffix[n - 1].second = s[n - 1];
-        for (int i = n - 2; i >= 0; i--) {
-            suffix[i].first = ((suffix[i + 1].first * Base1) + s[i]) % mod1;
-            suffix[i].second = ((suffix[i + 1].second * Base2) + s[i]) % mod2;
-        }
-    }
-    pair<ll, ll> getPrefixRangeHash(int l, int r) { // return hash value of a range
-        assert(l <= r); // <==
-        if (l == 0) return prefix[r];
-        pair<ll, ll> Hs;
-        Hs.first = (prefix[r].first - (prefix[l - 1].first * po[r - l + 1].first % mod1) + mod1) % mod1;
-        Hs.second = (prefix[r].second - (prefix[l - 1].second * po[r - l + 1].second % mod2) + mod2) % mod2;
-        return Hs;
-    }
-    pair<ll, ll> getSuffixRangeHash(int l, int r) { // return hash value of a range
-        assert(l <= r);
-        if (r == n - 1) return suffix[l];
-        pair<ll, ll> Hs;
-        Hs.first = (suffix[l].first - (suffix[r + 1].first * po[r - l + 1].first % mod1) + mod1) % mod1;
-        Hs.second = (suffix[l].second - (suffix[r + 1].second * po[r - l + 1].second % mod2) + mod2) % mod2;
-        return Hs;
-    }
-    pair<ll, ll> concat(pair<ll, ll> &hash1, pair<ll, ll> &hash2, int len) { // len = 2nd string size
-        return {((hash1.first * po[len].first) + hash2.first) % mod1, ((hash1.second * po[len].second) + hash2.second) % mod2};
-    }
-
-    void build(string &s) {
+struct StringHash{
+    // polinomial rolling hash
+    /*
+        in main() write the following line for better randomness 
+        srand(time(0));
+    */
+    vector<ll> bases = {131, 137, 277, 257};
+    vector<ll>mods = {127657753, 987654319, 1000000007, 972663749};
+    ll base1, base2, mod1, mod2,n;
+    vector<pair<ll,ll>> prefixHash, basePower, suffixHash;
+    
+    StringHash(string s)
+    {
         n = s.size();
-        prefix.resize(n), suffix.resize(n);
-        generatePrefixHash(s);
-        // generateSuffixHash(s);
-        if(po[0].first != 1) generatePower();
+        prefixHash.resize(n);
+        basePower.resize(n);
+        base1 = bases[rand()%4], base2 = bases[rand()%4];
+        while(base2 == base1) base2 = bases[rand()%4];
+        mod1 = mods[rand()%4], mod2 = mods[rand()%4];
+        while(mod2 == mod1) mod2 = mods[rand()%4];
+        
+        buildPrefixHash(s); // O(n)
+        // suffixHash.resize(n);
+        // buildSuffixHash(s); // *** Uncomment when you need to build SuffixHash
     }
-} Hash;
-
-void solve() {
-    int n, m;
-    string s1, s2;
-    s1 = "abcabababc", s2 = "abc";
-    // cin >> s1 >> s2;
-    n = s1.size();
-    Hash.build(s1);
-
-    pair<ll, ll> hashOfS2 = Hash.generateHash(s2);
-    for(int i = 0; i + s2.size() <= s1.size(); i++) {
-        if(Hash.getPrefixRangeHash(i, i + s2.size() - 1) == hashOfS2) {
-            cout << i << "\n";
+    
+    void buildPrefixHash(string &s) // O(n)
+    {
+        prefixHash[0] = {s[0] , s[0]};
+        basePower[0] = {1, 1};
+        for(int i=1;i<n;i++)
+        {
+            prefixHash[i].first = ((prefixHash[i-1].first * base1)+s[i]) % mod1;
+            prefixHash[i].second = ((prefixHash[i-1].second * base2)+s[i]) % mod2;
+            basePower[i] = {(basePower[i-1].first * base1) % mod1 , (basePower[i-1].second * base2) % mod2 };
         }
     }
-    return;
-}
-
-signed main() 
-{
-    ios::sync_with_stdio(false); cin.tie(0);
-    int tc = 1;
-    // cin >> tc;
-    for(int t = 1; t <= tc; t++) {
-        // cout << "Case " << t << ": ";
-        solve();
+    void buildSuffixHash(string &s) // O(n)
+    {
+        suffixHash[n-1] = {s[n-1],s[n-1]};
+        for(int i=n-2;i>=0;i--)
+        {
+            suffixHash[i].first = ((suffixHash[i+1].first * base1) + s[i]) % mod1;
+            suffixHash[i].second = ((suffixHash[i+1].second * base2) + s[i]) % mod2;
+        }
     }
-    return 0;
+
+    pair<ll,ll> quickHash(string &s) // O(n)
+    {
+        pair<ll,ll> Hash = {s[0],s[0]};
+        for(int i=1;i<s.size();i++)
+        {
+            Hash.first = ((Hash.first*base1) + s[i] ) % mod1;
+            Hash.second = ((Hash.second*base2) + s[i]) % mod2;
+        }
+        return Hash;
+    }
+    
+    pair<ll,ll> getPrefixHash(int l,int r) // O(1)
+    {
+        if(l==0) return prefixHash[r];
+        ll a = (((prefixHash[r].first - (prefixHash[l-1].first * basePower[r-l+1].first)) % mod1) + mod1) % mod1;
+        ll b = (((prefixHash[r].second - (prefixHash[l-1].second * basePower[r-l+1].second)) % mod2) + mod2) % mod2;
+        return {a,b};
+    }
+    pair<ll,ll> getSuffixHash(int l,int r) // O(1)
+    {
+        if(r==n-1) return suffixHash[l];
+        ll a = (((suffixHash[l].first - (suffixHash[r+1].first * basePower[r-l+1].first)) % mod1) + mod1) % mod1;
+        ll b = (((suffixHash[l].second - (suffixHash[r+1].second * basePower[r-l+1].second)) % mod2) + mod2) % mod2;
+        return {a,b};
+    }
+
+    pair<ll,ll> concatSubstr(int l1,int r1,int l2,int r2) // O(1)
+    {
+        pair<ll,ll> hashLeft = getPrefixHash(l1,r1);
+        pair<ll,ll> hashRight = getPrefixHash(l2,r2);
+        return {(hashLeft.first +  hashRight.first * basePower[r2-l2+1].first ) % mod1 , (hashLeft.second + hashRight.second * basePower[r2-l2+1].second) % mod2};
+    }
+    pair<ll,ll> concatHash(const pair<ll,ll>& left, const pair<ll,ll>& right, int lenRight) // O(1)
+    {
+        return {(left.first * basePower[lenRight].first + right.first) % mod1, (left.second * basePower[lenRight].second + right.second) % mod2 };
+    }
+    void appendChar(char c) // O(1)
+    {
+        int n = prefixHash.size();
+        ll newFirst = (prefixHash.back().first * base1 + c) % mod1;
+        ll newSecond = (prefixHash.back().second * base2 + c) % mod2;
+        prefixHash.push_back({newFirst,newSecond});
+        
+        ll powFirst = (basePower.back().first * base1) % mod1;
+        ll powSecond = (basePower.back().second * base2) % mod2;
+        basePower.push_back({powFirst,powSecond});
+    }
+};
+
+int main()
+{
+    ios_base::sync_with_stdio(false); cin.tie(NULL);
+
+    srand(time(0));
+    string s; cin >> s;
+
+    // buildPrefixHash is called, uncomment buildSuffixHash for suffix hash
+    StringHash hash(s); // Preprocessing O(n)
+
+    string ss; cin >> ss;
+
+    // get the hash of a whole string 
+    pair<ll,ll> hashOfss = hash.quickHash(ss); // O(|ss|)
+    
+    // get the hash of any substring of string s
+    pair<ll,ll> hashofsubstrS = hash.getPrefixHash(2,5); // 0 based index l,r  // O(1)
+
+    // get the hash value of two substring of string s concatinated left + right
+    pair<ll,ll> conhash = hash.concatSubstr(0,4,7,8); // l1,r1,l2,r2  // O(1)
+
+    // you have the hash value of two substring from any two string
+    // now you want to find the hash of the string = substr1 + substr2
+    pair<ll,ll> conhash2 = hash.concatHash(hashOfss , conhash , 3); // left hash, right hash, size of right hash(size of the actual right string)
+    // this will give you a new hash which is == hashOfss + conhash  // O(1)
+
+    // what if we want to append a character to the end of s
+    // we can just update the hash value also 
+    s.push_back('a');
+    hash.appendChar('a'); // O(1)
+
+
+    // if we need the reverse hash of the string s
+    // we can simply declare another structure after reversing s
+    reverse(s.begin(),s.end());
+    StringHash hash2(s); // O(n)
+     
 }
